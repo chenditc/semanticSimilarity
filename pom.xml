@@ -1,0 +1,68 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>de.tudarmstadt.ukp.dkpro.core</groupId>
+    <artifactId>dkpro-parent-pom</artifactId>
+    <version>6</version>
+  </parent>
+  <groupId>com.dichen.semanticSim</groupId>
+  <artifactId>com.dichen.semanticSim</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+  <name>semanticSim</name>
+  <build>
+		<sourceDirectory>src</sourceDirectory>
+		<plugins>
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.1</version><!--$NO-MVN-MAN-VER$-->
+				<configuration>
+					<source>1.6</source>
+					<target>1.6</target>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
+	<repositories>
+		<!-- For DKPRO -->
+		<repository>
+			<id>ukp-oss-model-releases</id>
+			<url>http://zoidberg.ukp.informatik.tu-darmstadt.de/artifactory/public-model-releases-local</url> 
+		</repository>
+		
+		<repository>
+    		<id>ukp-oss</id>
+    		<url>https://zoidberg.ukp.informatik.tu-darmstadt.de/artifactory/public-ukp-releases-local/</url>
+		</repository>
+		
+		<repository>
+    		<id>ukp-oss</id>
+    		<url>https://zoidberg.ukp.informatik.tu-darmstadt.de/artifactory/public-ukp-snapshots-local/</url>
+		</repository>
+
+	</repositories>
+
+	<dependencies>
+		<!-- For DKPRO -->
+		<dependency>
+			<groupId>dkpro.similarity</groupId>
+			<artifactId>dkpro.similarity.algorithms.api-asl</artifactId>
+			<version>2.1.0</version>
+		</dependency>
+		<dependency>
+			<groupId>dkpro.similarity</groupId>
+			<artifactId>
+				dkpro.similarity.algorithms.lexical-asl
+			</artifactId>
+			<version>2.1.0</version>
+		</dependency>
+		<dependency>
+			<groupId>dkpro.similarity</groupId>
+			<artifactId>
+				dkpro.similarity.algorithms.lexical-gpl
+			</artifactId>
+			<version>2.1.0</version>
+		</dependency>
+	</dependencies>
+
+</project>
