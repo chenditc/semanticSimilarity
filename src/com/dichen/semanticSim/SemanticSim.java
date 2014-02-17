@@ -1,8 +1,11 @@
 package com.dichen.semanticSim;
 
+import java.awt.print.Printable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
+
+import org.netlib.util.doubleW;
 
 import de.tudarmstadt.ukp.dkpro.lexsemresource.Entity;
 import de.tudarmstadt.ukp.dkpro.lexsemresource.LexicalSemanticResource;
@@ -27,34 +30,34 @@ public class SemanticSim {
     public static void main(String[] args) {     
         LexicalSemanticResource resource;
         try {
+            String inputword1 = "illuminate";
+            String inputWord2 = "bright%3:00:00::";
+            
             // Get resource from local file
             resource = ResourceFactory.getInstance().get("wordnet", "en");
-            
-
             TextSimilarityMeasure measure = new LinComparator(resource);
-            
-            String[] tokens1 = "job is book".split(" ");   
-            String[] tokens2 = "bike are text".split(" ");
-            List<String> token1 = Arrays.asList(tokens1);
-            List<String> token2 = Arrays.asList(tokens2);
 
-            //TODO: probably we should lemmatize the input before pass in. Not documented.
-            double score;
-            score = measure.getSimilarity(token1, token2);
-            System.out.println("Similarity: " + score);
+            // Get definition from wordnet.
+            WordNetWorker parser = new WordNetWorker();
+            String senseDescription = parser.getSense(inputWord2);
+            String[] descriptionWords = senseDescription.split("\\W+");
+
+            //TODO: probably we should lemmatize the input before pass in. Not documented.     
+            double score = 0;
+            for (String word : descriptionWords) {
+                double tempScore = measure.getSimilarity(inputword1, word);
+                System.out.println("Similarity: " + tempScore + word);
+                score = score > tempScore ? score : tempScore;
+            }
+            System.out.println("Similarity: " + score*5);
 
 
-        } catch (ResourceLoaderException e1) {
+        } catch (Exception e1) {
             // TODO Auto-generated catch block
             e1.printStackTrace();
-        } catch (LexicalSemanticResourceException e1) {
-            // TODO Auto-generated catch block
-            e1.printStackTrace();
-        } catch (SimilarityException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
+        } 
 
+        
         System.out.print("Finish running");
     }
 
