@@ -38,6 +38,12 @@ public class WordNetWorker {
         try {
             // Get the sense number from the sense key.
             String temp = getWordNetMap().get(senseKey);
+            
+            if (temp == null) {
+                System.err.println("There is no sense key in wordnet: " + senseKey);
+                return null;
+            }
+            
             String senseSyn = temp.substring(0, temp.length()-1);
             senseSyn = Integer.parseInt(senseSyn) + "";
             
