@@ -3,6 +3,7 @@ package com.dichen.semanticSim;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -64,6 +65,29 @@ public class WordNetWorker {
         } catch (Exception e) {
             e.printStackTrace();
             return "";
+        }        
+    }
+    
+    static List<String> getSenses(String inputWord){
+        // get sense map.
+        try {
+            
+            // Get the word from sense key, search by word.
+            LsrSenseInventory senseInventory = new LsrSenseInventory("wordnet", "en");
+            String word = inputWord.split("%")[0];
+            List<String> senses = senseInventory.getSenses(inputWord);
+
+            // fileter the sense that match the sense number, return the description.
+            List<String> result = new ArrayList<String>();
+            for (String sense : senses) {
+                result.add(senseInventory.getSenseDescription(sense));
+            }
+            
+            // If no sense found, return empty string.
+            return result;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
         }        
     }
 }
