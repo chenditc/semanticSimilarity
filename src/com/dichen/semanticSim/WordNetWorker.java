@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -32,9 +33,9 @@ public class WordNetWorker {
     /**
      * 
      * @param senseKey  The input should be the sense key in wordnet 3.1
-     * @return  The sense set in wordnet3.1. return empty string if there is an exception.
+     * @return  The sense strings in wordnet3.1. return null if there is an exception.
      */
-    static String getSense(String senseKey){
+    public static String[] getSense(String senseKey){
         // get sense map.
         try {
             // Get the sense number from the sense key.
@@ -56,31 +57,36 @@ public class WordNetWorker {
             // fileter the sense that match the sense number, return the description.
             for (String sense : senses) {
                 if (sense.contains(senseSyn)){
-                    return senseInventory.getSenseDescription(sense);
+                    return senseInventory.getSenseDescription(sense).split("\\W+");
                 }
             }
             
             // If no sense found, return empty string.
-            return "";
+            return null;
         } catch (Exception e) {
             e.printStackTrace();
-            return "";
+            return null;
         }        
     }
     
-    static List<String> getSenses(String inputWord){
+    /**
+     * Return all words in all description of inputWord.
+     * @param inputWord input is a normal word, not sense key.
+     * @return a list of description words.
+     */
+    public static List<String> getSenses(String inputWord){
         // get sense map.
         try {
             
             // Get the word from sense key, search by word.
             LsrSenseInventory senseInventory = new LsrSenseInventory("wordnet", "en");
-            String word = inputWord.split("%")[0];
             List<String> senses = senseInventory.getSenses(inputWord);
 
             // fileter the sense that match the sense number, return the description.
             List<String> result = new ArrayList<String>();
             for (String sense : senses) {
-                result.add(senseInventory.getSenseDescription(sense));
+                List<String> descriptionWordsList = Arrays.asList(senseInventory.getSenseDescription(sense).split("\\W+"));
+                result.addAll(descriptionWordsList);
             }
             
             // If no sense found, return empty string.

@@ -1,133 +1,94 @@
 package com.dichen.semanticSim;
 
-import java.awt.print.Printable;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
-import org.netlib.util.doubleW;
-import org.netlib.util.intW;
+
 
 import com.dichen.semanticSim.InputParser.TaskType;
+import com.dichen.semanticSim.wordNet.WordNet_wordToDescription;
+import com.dichen.semanticSim.wordNet.WordNet_wordToWord.SimilarityAlgorithm;
 
-import de.tudarmstadt.ukp.dkpro.lexsemresource.Entity;
-import de.tudarmstadt.ukp.dkpro.lexsemresource.LexicalSemanticResource;
-import de.tudarmstadt.ukp.dkpro.lexsemresource.LexicalSemanticResource.LexicalRelation;
-import de.tudarmstadt.ukp.dkpro.lexsemresource.LexicalSemanticResource.SemanticRelation;
-import de.tudarmstadt.ukp.dkpro.lexsemresource.core.ResourceFactory;
-import de.tudarmstadt.ukp.dkpro.lexsemresource.exception.LexicalSemanticResourceException;
-import de.tudarmstadt.ukp.dkpro.lexsemresource.exception.ResourceLoaderException;
-import dkpro.similarity.algorithms.*;
-import dkpro.similarity.algorithms.api.SimilarityException;
-import dkpro.similarity.algorithms.api.TextSimilarityMeasure;
-import dkpro.similarity.algorithms.lexical.ngrams.WordNGramJaccardMeasure;
-import dkpro.similarity.algorithms.lsr.LexSemRelationComparator;
-import dkpro.similarity.algorithms.lsr.LexSemResourceComparator;
-import dkpro.similarity.algorithms.lsr.path.JiangConrathComparator;
-import dkpro.similarity.algorithms.lsr.path.LeacockChodorowComparator;
-import dkpro.similarity.algorithms.lsr.path.LinComparator;
-import dkpro.similarity.algorithms.lsr.path.PathBasedComparator;
-import dkpro.similarity.algorithms.lsr.path.PathLengthComparator;
-import dkpro.similarity.algorithms.lsr.path.ResnikComparator;
-import dkpro.similarity.algorithms.lsr.path.WuPalmerComparator;
+public class SemanticSim extends Thread{
 
-public class SemanticSim {
-
+    private WordNet_wordToDescription measure;
+    private SimilarityAlgorithm algorithm;
+    public SemanticSim(SimilarityAlgorithm runAlgorithm) {
+        // TODO Auto-generated constructor stub
+        algorithm = runAlgorithm;
+        measure = new WordNet_wordToDescription(algorithm);
+    }
+    
     /**
      * @param args
      */
-    public static void main(String[] args) {     
-        LexicalSemanticResource resource;
+    public void run() {
+        calculate();
+    }
+    
+    public void calculate() {    
+        List<Double> resultDoubles = new ArrayList<Double>();
+        
+        System.out.println("Start running " + algorithm);
+ 
+        
         try {
+            // Get data
             InputParser inputParser = new  InputParser(TaskType.word2sense);
             inputParser.readFile(System.getenv("DKPRO_HOME") + "/SemEval-2014_Task-3-2/data/training/word2sense.train.input.tsv");
             
+            // word list 1 is the list of words
             List<String> wordList1 = inputParser.getWordList1();
+            // word list 2 is the list of sense, represented in the sense key of word net.
             List<String> wordList2 = inputParser.getWordList2();
 
+            if (wordList1.size() != wordList2.size()) {
+                System.err.println("The size of word and sense list does not match");
+                return;
+            }
+            
+            // create thread pool and for each word pair, run the thread pool
+            ExecutorService threadPoolService = Executors.newFixedThreadPool(16);
+            List<Future<Double>> futures = new ArrayList<Future<Double>>();
+            
             for (int i = 0; i < wordList1.size(); i++) {
-                String inputWord1 = wordList1.get(i);
-                String inputWord2 = wordList2.get(i);
+                String word1 = wordList1.get(i);
+                String sense2 = wordList2.get(i);
                 
-                // Get resource from local file
-                resource = ResourceFactory.getInstance().get("wordnet", "en");
-//                TextSimilarityMeasure measure = new LinComparator(resource);
-//                TextSimilarityMeasure measure = new JiangConrathComparator(resource);
-                // normalize the score if using LeacockChodorowComparator.
-//                TextSimilarityMeasure measure = new LeacockChodorowComparator(resource);
-//                TextSimilarityMeasure measure = new ResnikComparator(resource);
-                TextSimilarityMeasure measure = new WuPalmerComparator(resource);
+                SemanticSimRunner runner = new SemanticSimRunner(new WordNet_wordToDescription(algorithm), word1, sense2);
+                futures.add(threadPoolService.submit(runner));
+            }
+            
+            threadPoolService.shutdown();
+            threadPoolService.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+            
+            // Add result into result list
+            for (Future<Double> result : futures) {
+                System.out.println("start add result");
 
-                // Get definition from wordnet.
-                String senseDescription = WordNetWorker.getSense(inputWord2);
-                List<String> senseDescription1 = WordNetWorker.getSenses(inputWord1);
-                
-                // skip some sense that is not in the wordnet dictionary.
-                if (senseDescription == null) continue;
-                
-                String[] descriptionWords = senseDescription.split("\\W+");
-                
-                // use word vs word sense comparision.
-                /*
-                descriptionWords = new String[1];
-                int index = inputWord2.indexOf('%');
-                descriptionWords[0] = inputWord2;
-                if (index != -1){
-                    descriptionWords[0] = inputWord2.substring(0, index);
-                }
-                */
+                resultDoubles.add(result.get());
+                System.out.println("add result");
 
-                //TODO: probably we should lemmatize the input before pass in. Not documented. 
-                double score = 0;
-                for (String description1 : senseDescription1) {
-                    // for each tentative sense, calculate similarity score, pick the highest
-                    List<Double> tempScoreList = new ArrayList<Double>();
-                    // for each word in sense, average them.
-                    for (String word : descriptionWords) {
-                        String[] description1Words = description1.split("\\W+");
-                        for (String description1Word : description1Words) {
-                            double tempScore = measure.getSimilarity(description1Word, word);
-                            if (tempScore < 0) {
-                                continue;
-                            }
-                            tempScoreList.add(new Double(tempScore));
-                        }
-                    }
-                    double sum = 0;
-                    for (Double tempScore : tempScoreList) {
-                        sum += tempScore.doubleValue();
-                    }
-                    double avg = sum / tempScoreList.size();
-                    score = score > avg ? score : avg;
-                }
-
-                score = score * 2;
-                if (score > 1) {
-                    score = 1;
-                }
-
-                /* normalize the score if using LeacockChodorowComparator.
-                score = score / 3.5;
-                if (score > 1) {
-                    score = 1;
-                }
-                */
-                
-//                System.out.println("Similarity: " + String.format("%1$,.1f", score*4) + "\tbetween " + inputword1 + " " + inputWord2);
-              System.out.println(String.format("%1$,.1f", score*4));
 
             }
-
-
+          
+//                System.out.println("Similarity: " + String.format("%1$,.1f", score*4) + "\tbetween " + inputword1 + " " + inputWord2);
+//              System.out.println(String.format("%1$,.1f", 0));
 
         } catch (Exception e1) {
             // TODO Auto-generated catch block
             e1.printStackTrace();
         } 
 
-        
-        System.out.print("Finish running");
+        OutputWriter.writeToFile("raw.training.word_word." + algorithm, resultDoubles);
+
+        System.out.println("Finish running " + algorithm);
     }
+
+   
 
 }

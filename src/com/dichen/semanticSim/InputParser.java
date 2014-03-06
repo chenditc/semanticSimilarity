@@ -46,6 +46,11 @@ public class InputParser {
         br.close();
     }
     
+    public static String getWordFromSenseKey(String sensekey){
+        int index = sensekey.indexOf('%');
+        return index == -1 ? sensekey : sensekey.substring(0, index);
+    }
+    
     public List<String> getWordList1() {
         return wordList1;
     }
