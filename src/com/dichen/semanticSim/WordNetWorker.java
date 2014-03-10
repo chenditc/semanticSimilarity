@@ -82,7 +82,6 @@ public class WordNetWorker {
             LsrSenseInventory senseInventory = new LsrSenseInventory("wordnet", "en");
             List<String> senses = senseInventory.getSenses(inputWord);
 
-            // fileter the sense that match the sense number, return the description.
             List<String> result = new ArrayList<String>();
             for (String sense : senses) {
                 List<String> descriptionWordsList = Arrays.asList(senseInventory.getSenseDescription(sense).split("\\W+"));

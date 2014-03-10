@@ -22,7 +22,8 @@ public class OutputWriter {
             writer = new BufferedWriter(new OutputStreamWriter(
                   new FileOutputStream("outputs/" + fileName), "utf-8"));
             for (Double score : scores) {
-                writer.write(String.format("%1$,.1f", score) + '\n');
+                writer.write(new Double(score).toString() + '\n');
+
             }
         } catch (IOException ex) {
           // report

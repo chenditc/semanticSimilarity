@@ -10,17 +10,16 @@ import java.util.concurrent.TimeUnit;
 
 
 import com.dichen.semanticSim.InputParser.TaskType;
+import com.dichen.semanticSim.wordNet.WordNet_phraseToWord;
 import com.dichen.semanticSim.wordNet.WordNet_wordToDescription;
 import com.dichen.semanticSim.wordNet.WordNet_wordToWord.SimilarityAlgorithm;
 
 public class SemanticSim extends Thread{
 
-    private WordNet_wordToDescription measure;
     private SimilarityAlgorithm algorithm;
     public SemanticSim(SimilarityAlgorithm runAlgorithm) {
         // TODO Auto-generated constructor stub
         algorithm = runAlgorithm;
-        measure = new WordNet_wordToDescription(algorithm);
     }
     
     /**
@@ -38,7 +37,7 @@ public class SemanticSim extends Thread{
         
         try {
             // Get data
-            InputParser inputParser = new  InputParser(TaskType.word2sense);
+            InputParser inputParser = new  InputParser();
             inputParser.readFile(System.getenv("DKPRO_HOME") + "/SemEval-2014_Task-3-2/data/training/word2sense.train.input.tsv");
             
             // word list 1 is the list of words
@@ -51,7 +50,16 @@ public class SemanticSim extends Thread{
                 return;
             }
             
+            for (int i = 0; i < wordList1.size(); i++) {
+                String word1 = wordList1.get(i);
+                String sense2 = wordList2.get(i);
+                SemanticSimRunner runner = new SemanticSimRunner(inputParser.getTaskType(), algorithm, word1, sense2);
+                resultDoubles.add(runner.call());
+            }
+            
+            
             // create thread pool and for each word pair, run the thread pool
+            /*
             ExecutorService threadPoolService = Executors.newFixedThreadPool(16);
             List<Future<Double>> futures = new ArrayList<Future<Double>>();
             
@@ -66,6 +74,7 @@ public class SemanticSim extends Thread{
             threadPoolService.shutdown();
             threadPoolService.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
             
+            
             // Add result into result list
             for (Future<Double> result : futures) {
                 System.out.println("start add result");
@@ -75,16 +84,17 @@ public class SemanticSim extends Thread{
 
 
             }
-          
+            */
 //                System.out.println("Similarity: " + String.format("%1$,.1f", score*4) + "\tbetween " + inputword1 + " " + inputWord2);
 //              System.out.println(String.format("%1$,.1f", 0));
+
+            OutputWriter.writeToFile("raw.training." + inputParser.getTaskType() + "." + "word_word" + "."+ algorithm, resultDoubles);
 
         } catch (Exception e1) {
             // TODO Auto-generated catch block
             e1.printStackTrace();
         } 
 
-        OutputWriter.writeToFile("raw.training.word_word." + algorithm, resultDoubles);
 
         System.out.println("Finish running " + algorithm);
     }

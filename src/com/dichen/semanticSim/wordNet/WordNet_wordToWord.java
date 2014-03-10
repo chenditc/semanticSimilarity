@@ -1,17 +1,18 @@
 package com.dichen.semanticSim.wordNet;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-import org.netlib.util.doubleW;
 
 import com.dichen.semanticSim.InputParser;
 
 import de.tudarmstadt.ukp.dkpro.lexsemresource.LexicalSemanticResource;
 import de.tudarmstadt.ukp.dkpro.lexsemresource.core.ResourceFactory;
-import de.tudarmstadt.ukp.dkpro.lexsemresource.exception.LexicalSemanticResourceException;
 import de.tudarmstadt.ukp.dkpro.lexsemresource.exception.ResourceLoaderException;
 import dkpro.similarity.algorithms.api.SimilarityException;
 import dkpro.similarity.algorithms.api.TextSimilarityMeasure;
@@ -21,8 +22,11 @@ import dkpro.similarity.algorithms.lsr.path.LinComparator;
 import dkpro.similarity.algorithms.lsr.path.ResnikComparator;
 import dkpro.similarity.algorithms.lsr.path.WuPalmerComparator;
 
-public class WordNet_wordToWord {
+public class WordNet_wordToWord implements WordNet_measurement{
 
+    // TODO: Use web-database if necessary.
+    private Map<String, Double> scoreCacheMap = new HashMap<String, Double>();
+    
     public enum SimilarityAlgorithm {
         LIN,
         JIANG_CONRATH,
@@ -33,12 +37,51 @@ public class WordNet_wordToWord {
     
     // required resource for similarity measurement.
     private LexicalSemanticResource resource;
+    // Do not use this variable directly, call the warpper method.
     private TextSimilarityMeasure measure;
+    
+
+    /**
+     * Get similarity score from algorithm.
+     * Fetch score from cache if it is already computed.
+     * 
+     * @param word1     Must be word, not sense key.
+     * @param word2     Must be word, not sense key.
+     * @return          Similarity Score
+     */
+    private double getSimilarity(String word1, String word2) {
+        // get key for word pair.
+        // The key is word:word pattern
+        String key = word1 + ":" + word2;
+        if (word1.compareTo(word2) > 0) {
+            key = word2 + ":" + word1;
+        }
+        
+        // If already cached, return the value.
+        if (scoreCacheMap.containsKey(key)) {
+            return scoreCacheMap.get(key).doubleValue();
+        }
+        
+        // Calculate the value, cache it and return it.
+        Double result = 0.0;
+        try {
+            result = new Double(measure.getSimilarity(word1, word2));
+        } catch (SimilarityException e) {
+            result = 0.0;
+            e.printStackTrace();
+        }
+        scoreCacheMap.put(key, result);
+        
+        return result.doubleValue();
+    }
+
     
     public static synchronized LexicalSemanticResource getResource(){
         try {
             return ResourceFactory.getInstance().get("wordnet", "en");
         } catch (ResourceLoaderException e) {
+            System.err.println("set up wordnet resource fail");
+
             return null;
         }
     }
@@ -60,11 +103,18 @@ public class WordNet_wordToWord {
             else if (algorithmType == SimilarityAlgorithm.WUPALMER) {
                 return new WuPalmerComparator(resource);
             }
+            /*
+            else if (algorithmType == SimilarityAlgorithm.PATH_LENGTH){
+                return new PathLengthComparator(resource);
+            }
+            */
             else {
+                System.err.println("set up wordnet comparator fail, unknown algorithm");
                 return null;
             }
             
         } catch (Exception e) {
+            System.err.println("set up wordnet comparator fail");
             return null;
         }
     }
@@ -104,13 +154,8 @@ public class WordNet_wordToWord {
         word2 = InputParser.getWordFromSenseKey(word2);
 
         double measureScore = -1;
-        try {
-            measureScore = measure.getSimilarity(word1, word2);
-        } catch (SimilarityException e) {
-            measureScore = -1;
-            System.err.println("SimilarityException");
-            e.printStackTrace();
-        }
+        measureScore = getSimilarity(word1, word2);
+
         
         return measureScore;
     }
@@ -134,12 +179,9 @@ public class WordNet_wordToWord {
 
         double measureScore = -1;
         for (String word2 : words2) {
-            try {
-                double temp = measure.getSimilarity(word1, word2);
+                double temp = getSimilarity(word1, word2);
                 // update the maximum score
                 measureScore = measureScore > temp ? measureScore : temp;
-            } catch (SimilarityException e) {
-            }
         }
 
         return measureScore;
@@ -175,15 +217,10 @@ public class WordNet_wordToWord {
             String matchWord = "";
             // Find maximum similarity score for word1.
             for (String word2 : words2) {
-                try {
-                    double temp = measure.getSimilarity(word1, word2);
-                    if (temp > simScore) {
-                        simScore = temp;
-                        matchWord = word2;
-                    }
-                } catch (SimilarityException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
+                double temp = getSimilarity(word1, word2);
+                if (temp > simScore) {
+                    simScore = temp;
+                    matchWord = word2;
                 }
             }
             
@@ -197,13 +234,38 @@ public class WordNet_wordToWord {
             }
         }
         
+        
         // calculate the average similarity score.
+        /*
         double sum = 0;
         for (Double score : scoreMap.values()) {
             sum += score.doubleValue();
         }
-        return sum / scoreMap.size();
+        return sum / scoreMap.size();        
+        */
+        
+        // TODO: test code for issue #3:
+        //          Use top 40% of the similarity score for averaging the description to description approach.
+        double sum = 0;
+        List<Double> scoreList = new ArrayList<Double>(scoreMap.values());
+        // sort in acsending order.
+        Collections.sort(scoreList);
+        Collections.reverse(scoreList);
+        for (int i = 0; i < (scoreList.size() * 0.4); i++) {
+            sum += scoreList.get(i);
+        }        
+        
+        return sum / (scoreList.size()*0.4);
+        
+        
 
+    }
+
+
+    @Override
+    public double getWordNetSimilarity(String larger, String smaller) {
+        // Use word to word direct measure.
+        return getSimilairtyScore(larger, smaller);
     }
     
     
