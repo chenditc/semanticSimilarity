@@ -1,5 +1,6 @@
 package com.dichen.semanticSim.wordNet;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -8,8 +9,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import org.netlib.util.intW;
+
 
 import com.dichen.semanticSim.InputParser;
+import com.dichen.semanticSim.OutputWriter;
 
 import de.tudarmstadt.ukp.dkpro.lexsemresource.LexicalSemanticResource;
 import de.tudarmstadt.ukp.dkpro.lexsemresource.core.ResourceFactory;
@@ -21,13 +25,23 @@ import dkpro.similarity.algorithms.lsr.path.LeacockChodorowComparator;
 import dkpro.similarity.algorithms.lsr.path.LinComparator;
 import dkpro.similarity.algorithms.lsr.path.ResnikComparator;
 import dkpro.similarity.algorithms.lsr.path.WuPalmerComparator;
+import dkpro.similarity.algorithms.vsm.ExplicitSemanticAnalysisComparator;
+import dkpro.similarity.algorithms.vsm.VectorAggregation;
+import dkpro.similarity.algorithms.vsm.VectorComparator;
+import dkpro.similarity.algorithms.vsm.VectorNorm;
+import dkpro.similarity.algorithms.vsm.store.IndexedDocumentsVectorReaderBase;
+import dkpro.similarity.algorithms.vsm.store.LuceneVectorReader;
+import dkpro.similarity.algorithms.vsm.store.vectorindex.VectorIndexReader;
 
 public class WordNet_wordToWord implements WordNet_measurement{
 
     // TODO: Use web-database if necessary.
     private Map<String, Double> scoreCacheMap = new HashMap<String, Double>();
     
+    private int initial = 0;
+    
     public enum SimilarityAlgorithm {
+        ESA,
         LIN,
         JIANG_CONRATH,
         RESNIK,
@@ -39,6 +53,8 @@ public class WordNet_wordToWord implements WordNet_measurement{
     private LexicalSemanticResource resource;
     // Do not use this variable directly, call the warpper method.
     private TextSimilarityMeasure measure;
+    // Algorithm type for this measurement class.
+    private SimilarityAlgorithm algorithm;
     
 
     /**
@@ -103,11 +119,15 @@ public class WordNet_wordToWord implements WordNet_measurement{
             else if (algorithmType == SimilarityAlgorithm.WUPALMER) {
                 return new WuPalmerComparator(resource);
             }
-            /*
-            else if (algorithmType == SimilarityAlgorithm.PATH_LENGTH){
-                return new PathLengthComparator(resource);
+            else if (algorithmType == SimilarityAlgorithm.ESA) {
+                VectorIndexReader reader = new VectorIndexReader(new File(
+                        System.getenv("DKPRO_HOME") + "/ESA/VectorIndexes/esa_vector_index_wordnet_en/wordnet_eng_lem_nc_c")); 
+                reader.setVectorAggregation(VectorAggregation.CENTROID);
+                
+                VectorComparator cmp = new VectorComparator(reader);
+
+                return cmp;
             }
-            */
             else {
                 System.err.println("set up wordnet comparator fail, unknown algorithm");
                 return null;
@@ -120,17 +140,54 @@ public class WordNet_wordToWord implements WordNet_measurement{
     }
 
     /**
+     * Set up cache map if there is corresponding local file.
+     * @param algorithmType
+     */
+    private void setupCacheMap() {
+        String fileName = "cacheMap" + algorithm.toString();
+        Map<String, Double> temp = OutputWriter.readFromFile(fileName);
+        if (temp != null) {
+            scoreCacheMap = temp;
+            initial = scoreCacheMap.size();
+        }
+    }
+    
+    /**
+     * Save cache map to file.
+     * @param algorithmType
+     */
+    private void saveCacheMap() {
+        String fileName = "cacheMap" + algorithm.toString();
+        OutputWriter.writeToFile(fileName, scoreCacheMap);
+    }
+    
+    /**
+     * Save the cache map, call this function when certain amount of computation has done.
+     * 
+     */
+    public void save() {
+        if (scoreCacheMap.size() > 1.1 * initial) {
+            saveCacheMap();
+            initial = scoreCacheMap.size();
+        }
+    }
+    
+    /**
      * 
      * @param algorithmType Specify what kind of similarity algorithm should use.
      *                      Refer to the enum in WordNet_wordToWord.SimilarityAlgorithm
      */
     public WordNet_wordToWord(SimilarityAlgorithm algorithmType) {
+            algorithm = algorithmType;
+        
             while(resource == null) {
                 resource = getResource();
             }
             while (measure == null) {
                 measure = getComparator(algorithmType, resource);
             }
+            
+            setupCacheMap();
     }
 
     /**

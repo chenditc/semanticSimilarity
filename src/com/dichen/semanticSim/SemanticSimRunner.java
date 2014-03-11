@@ -31,8 +31,8 @@ public class SemanticSimRunner implements Callable<Double> {
         
         if (taskType == TaskType.word2sense) {
             // three approach here
-            measure = new WordNet_DescriptionToDescription(algorithm);
-//            measure = new WordNet_wordToDescription(algorithm);
+//            measure = new WordNet_DescriptionToDescription(algorithm);
+            measure = new WordNet_wordToDescription(algorithm);
 //            measure = new WordNet_wordToWord(algorithm);
         }
         else if (taskType == TaskType.phrase2word){
@@ -54,6 +54,7 @@ public class SemanticSimRunner implements Callable<Double> {
         try {
             double score = measure.getWordNetSimilarity(word, sense);
             score = score < 0 ? 0 : score;
+            measure.save();
             System.out.println("get value!");
             return new Double(score);
         } catch (Exception e) {

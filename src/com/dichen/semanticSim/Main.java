@@ -1,5 +1,8 @@
 package com.dichen.semanticSim;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import com.dichen.semanticSim.wordNet.WordNet_wordToWord.SimilarityAlgorithm;
 
 public class Main {
