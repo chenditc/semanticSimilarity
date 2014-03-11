@@ -43,7 +43,7 @@
                 <!--<param name="encoding" value="UTF-8"/>-->
             </param>
             <!--<param name="cache_use_count" value="true"/>-->
-            <param name="dictionary_path" value="/Users/chensusumu/Developer/E    clipse_workspace/com.dichen.semanticSim/de.tudarmstadt.ukp.dkpro.lexsemresource.core.Resou    rceFactory/wordnet3/"/>
+            <param name="dictionary_path" value="./de.tudarmstadt.ukp.dkpro.lexsemresource.core.ResourceFactory/wordnet3/"/>
         </param>
     </dictionary>
     <resource class="PrincetonResource"/>
