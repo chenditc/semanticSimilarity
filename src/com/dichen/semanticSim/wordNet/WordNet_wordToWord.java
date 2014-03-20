@@ -1,5 +1,6 @@
 package com.dichen.semanticSim.wordNet;
 
+import java.awt.print.Printable;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -121,7 +122,7 @@ public class WordNet_wordToWord implements WordNet_measurement{
             }
             else if (algorithmType == SimilarityAlgorithm.ESA) {
                 VectorIndexReader reader = new VectorIndexReader(new File(
-                        System.getenv("DKPRO_HOME") + "/ESA/VectorIndexes/esa_vector_index_wordnet_en/wordnet_eng_lem_nc_c")); 
+                        System.getenv("DKPRO_HOME") + "/ESA/VectorIndexes/wp_eng_lem_nc_c-2")); 
                 reader.setVectorAggregation(VectorAggregation.CENTROID);
                 
                 VectorComparator cmp = new VectorComparator(reader);
@@ -209,7 +210,7 @@ public class WordNet_wordToWord implements WordNet_measurement{
         // normalize two words, if any of them is a sense key, extract the word
         word1 = InputParser.getWordFromSenseKey(word1);
         word2 = InputParser.getWordFromSenseKey(word2);
-
+        
         double measureScore = -1;
         measureScore = getSimilarity(word1, word2);
 
@@ -254,12 +255,7 @@ public class WordNet_wordToWord implements WordNet_measurement{
      * @param words2
      * @return The maximum similarity between word1 and the word in words2.
      */
-    public double getSimilarityScoreByAlignment(List<String> words1, List<String> words2) {
-        if (resource == null || measure == null) {
-            System.err.println("null resource or measure");
-            return -1;
-        }
-       
+    public double getSimilarityScoreByAlignment(List<String> words1, List<String> words2) {       
         // Find the smaller length of words, and put it as words1.
         if (words1.size() > words2.size()) {
             List<String> temp = words1;
@@ -320,7 +316,7 @@ public class WordNet_wordToWord implements WordNet_measurement{
 
 
     @Override
-    public double getWordNetSimilarity(String larger, String smaller) {
+    public double getWordNetSimilarity(String larger, String smaller) {        
         // Use word to word direct measure.
         return getSimilairtyScore(larger, smaller);
     }

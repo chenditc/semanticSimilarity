@@ -13,6 +13,7 @@ import com.dichen.semanticSim.InputParser.TaskType;
 import com.dichen.semanticSim.wordNet.WordNet_DescriptionToDescription;
 import com.dichen.semanticSim.wordNet.WordNet_measurement;
 import com.dichen.semanticSim.wordNet.WordNet_phraseToWord;
+import com.dichen.semanticSim.wordNet.WordNet_sentenceToPhrase;
 import com.dichen.semanticSim.wordNet.WordNet_wordToDescription;
 import com.dichen.semanticSim.wordNet.WordNet_wordToWord;
 import com.dichen.semanticSim.wordNet.WordNet_wordToWord.SimilarityAlgorithm;
@@ -36,8 +37,12 @@ public class SemanticSimRunner implements Callable<Double> {
 //            measure = new WordNet_wordToWord(algorithm);
         }
         else if (taskType == TaskType.phrase2word){
-            // two approach here.
+            // two approach herem can change it in the class
             measure = new WordNet_phraseToWord(algorithm);
+        }
+        else if (taskType == TaskType.sentence2phrase) {
+            // three approach here, can change it in the class
+            measure = new WordNet_sentenceToPhrase(algorithm);
         }
     }
     
@@ -50,15 +55,12 @@ public class SemanticSimRunner implements Callable<Double> {
 
     @Override
     public Double call() throws Exception {
-        System.out.println("start value!");
         try {
             double score = measure.getWordNetSimilarity(word, sense);
             score = score < 0 ? 0 : score;
             measure.save();
-            System.out.println("get value!");
             return new Double(score);
         } catch (Exception e) {
-            System.out.println("get error!");
             return 0.0;
         }
 

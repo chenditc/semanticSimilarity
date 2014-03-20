@@ -13,6 +13,7 @@ import de.tudarmstadt.ukp.dkpro.wsd.si.wordnet.candidates.WordNetSenseKeyToSynse
 
 public class WordNetWorker {
     private static Map<String, String> wordNetMap;
+
     
     /**
      * 
@@ -35,7 +36,7 @@ public class WordNetWorker {
      * @param senseKey  The input should be the sense key in wordnet 3.1
      * @return  The sense strings in wordnet3.1. return null if there is an exception.
      */
-    public static String[] getSense(String senseKey){
+    public static List<String> getSense(String senseKey){
         // get sense map.
         try {
             // Get the sense number from the sense key.
@@ -57,7 +58,9 @@ public class WordNetWorker {
             // fileter the sense that match the sense number, return the description.
             for (String sense : senses) {
                 if (sense.contains(senseSyn)){
-                    return senseInventory.getSenseDescription(sense).split("\\W+");
+                    String[] tempArray = senseInventory.getSenseDescription(sense).split("\\W+");
+                    List<String> tempList = new ArrayList<String>(Arrays.asList(tempArray));
+                    return tempList;
                 }
             }
             
@@ -75,19 +78,25 @@ public class WordNetWorker {
      * @return a list of description words.
      */
     public static List<String> getSenses(String inputWord){
+        // split if there is a space between
+        
+        
         // get sense map.
         try {
-            
-            // Get the word from sense key, search by word.
-            LsrSenseInventory senseInventory = new LsrSenseInventory("wordnet", "en");
-            List<String> senses = senseInventory.getSenses(inputWord);
-
+            List<String> inputwords = new ArrayList<String>(Arrays.asList(inputWord.split("\\W+")));
             List<String> result = new ArrayList<String>();
-            for (String sense : senses) {
-                List<String> descriptionWordsList = Arrays.asList(senseInventory.getSenseDescription(sense).split("\\W+"));
-                result.addAll(descriptionWordsList);
+
+            for (String word : inputwords) {
+                // Get the word from sense key, search by word.
+                LsrSenseInventory senseInventory = new LsrSenseInventory("wordnet", "en");
+                List<String> senses = senseInventory.getSenses(word);
+
+                for (String sense : senses) {
+                    List<String> descriptionWordsList = Arrays.asList(senseInventory.getSenseDescription(sense).split("\\W+"));
+                    result.addAll(descriptionWordsList);
+                }
             }
-            
+
             // If no sense found, return empty string.
             return result;
         } catch (Exception e) {

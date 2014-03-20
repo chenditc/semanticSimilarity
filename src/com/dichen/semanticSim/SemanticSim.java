@@ -38,7 +38,7 @@ public class SemanticSim extends Thread{
         try {
             // Get data
             InputParser inputParser = new  InputParser();
-            inputParser.readFile(System.getenv("DKPRO_HOME") + "/SemEval-2014_Task-3-2/data/training/phrase2word.train.input.tsv");
+            inputParser.readFile(System.getenv("DKPRO_HOME") + "/SemEval-2014_Task-3-2/data/training/word2sense.train.input.tsv");
             
             // word list 1 is the list of words
             List<String> wordList1 = inputParser.getWordList1();
@@ -88,7 +88,7 @@ public class SemanticSim extends Thread{
 //                System.out.println("Similarity: " + String.format("%1$,.1f", score*4) + "\tbetween " + inputword1 + " " + inputWord2);
 //              System.out.println(String.format("%1$,.1f", 0));
 
-            OutputWriter.writeToFile("raw.training." + inputParser.getTaskType() + "." + "phrase_description" + "."+ algorithm, resultDoubles);
+            OutputWriter.writeToFile("raw.training." + inputParser.getTaskType() + "." + "description_description" + "."+ algorithm, resultDoubles);
 
         } catch (Exception e1) {
             // TODO Auto-generated catch block

@@ -25,6 +25,9 @@ public class WordNet_phraseToWord extends WordNet_wordToWord implements WordNet_
     public double getSimilarity_phraseToDefinition(String phrase, String word) {
         // Get definition of word as bad of words.
         List<String> wordDescription = WordNetWorker.getSenses(word);
+        if (wordDescription.size() == 0) {
+            wordDescription = new ArrayList<String>(Arrays.asList(word.split("\\W+")));
+        }
         
         // do alignment comparison on phrase to definition of the word.
         List<String> phraseList = new ArrayList<String>(Arrays.asList(phrase.split("\\W+")));
@@ -43,6 +46,9 @@ public class WordNet_phraseToWord extends WordNet_wordToWord implements WordNet_
     public double getSimilarity_DefinitionToDefinition(String phrase, String word) {
         // Get definition of word as bad of words.
         List<String> wordDescription = WordNetWorker.getSenses(word);
+        if (wordDescription.size() == 0) {
+            wordDescription = new ArrayList<String>(Arrays.asList(word.split("\\W+")));
+        }
         
         // do alignment comparison on definition of phrase to definition of the word.
         List<String> phraseList = new ArrayList<String>(Arrays.asList(phrase.split("\\W+")));
@@ -51,7 +57,7 @@ public class WordNet_phraseToWord extends WordNet_wordToWord implements WordNet_
         for (String tempWord : phraseList) {
             phraseDefinitionList.addAll(WordNetWorker.getSenses(tempWord));
         }
-        
+
         return getSimilarityScoreByAlignment(wordDescription, phraseDefinitionList);
     }
 

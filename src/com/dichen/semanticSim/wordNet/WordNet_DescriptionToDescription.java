@@ -21,7 +21,13 @@ public class WordNet_DescriptionToDescription extends WordNet_wordToDescription 
     public double getSimilarity_DescriptionToDescription_ByAlignment(String word, String senseKey) {
         try {
             List<String> wordDescription = WordNetWorker.getSenses(word);
-            List<String> senseDescription = new ArrayList<String>(Arrays.asList(WordNetWorker.getSense(senseKey)));
+            List<String> senseDescription = new ArrayList<String>(WordNetWorker.getSense(senseKey));
+
+            // If the word is not included in the wordnet.
+            if (wordDescription.size() == 0){
+                wordDescription.add(word);
+            }
+                    
             return getSimilarityScoreByAlignment(wordDescription, senseDescription);
         } catch (Exception e) {
             // TODO: handle exception

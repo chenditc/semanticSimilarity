@@ -69,6 +69,9 @@ public class InputParser {
         else if (inpuType == TaskType.phrase2word) {
             parseAndSavePhrase2WordInput(fileName);
         }
+        else {
+            parseAndSavePhrase2WordInput(fileName);
+        }
     }
     
     public void parseAndSaveWord2senseInput(String fileName) throws IOException {
