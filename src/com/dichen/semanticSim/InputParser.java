@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.netlib.util.booleanW;
 import org.netlib.util.intW;
 
 public class InputParser {
@@ -19,6 +20,7 @@ public class InputParser {
     }
     
     private TaskType inpuType;
+    public String dataType;
     // List of string in larger side.
     private List<String> wordList1 = new ArrayList<String>();
     // List of string in smaller side.
@@ -62,6 +64,16 @@ public class InputParser {
             inpuType = TaskType.paragraph2sentence;
         }
         
+        if (fileName.contains("training")) {
+            dataType = "training";
+        }
+        else if (fileName.contains("test")) {
+            dataType = "test";
+        }
+        else if (fileName.contains("trial")) {
+            dataType = "trial";
+        }
+        
         
         if (inpuType == TaskType.word2sense) {
             parseAndSaveWord2senseInput(fileName);
@@ -72,6 +84,8 @@ public class InputParser {
         else {
             parseAndSavePhrase2WordInput(fileName);
         }
+        
+        
     }
     
     public void parseAndSaveWord2senseInput(String fileName) throws IOException {

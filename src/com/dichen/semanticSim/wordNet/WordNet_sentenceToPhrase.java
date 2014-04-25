@@ -3,12 +3,16 @@ package com.dichen.semanticSim.wordNet;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import org.netlib.util.intW;
+
 import com.dichen.semanticSim.WordNetWorker;
 
 public class WordNet_sentenceToPhrase extends WordNet_wordToWord {
-
-    public WordNet_sentenceToPhrase(SimilarityAlgorithm algorithmType) {
+    private int approach;
+    public WordNet_sentenceToPhrase(SimilarityAlgorithm algorithmType, int runApproach) {
         super(algorithmType);
+        approach = runApproach;
     }
 
     /**
@@ -69,8 +73,14 @@ public class WordNet_sentenceToPhrase extends WordNet_wordToWord {
     @Override
     public double getWordNetSimilarity(String larger, String smaller) {
         // Use phrase to definition alignment measure.
-//        return getSimilarity_sentenceToPhrase(larger, smaller);
-//        return getSimilarity_sentenceToDefinition(larger, smaller);
-        return getSimilarity_DefinitionToDefinition(larger, smaller);
+        if (approach == 1) {
+            return getSimilarity_sentenceToPhrase(larger, smaller);
+        }
+        else if (approach == 2) {
+            return getSimilarity_sentenceToDefinition(larger, smaller);
+        }
+        else {
+            return getSimilarity_DefinitionToDefinition(larger, smaller);
+        }      
     }
 }

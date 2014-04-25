@@ -21,7 +21,7 @@ public class WordNet_wordToDescription extends WordNet_wordToWord implements Wor
      */
     public double getSimilarity_WordToDescription(String word, String senseKey) {
         try {
-            List<String> descriptionWords = new ArrayList<String>(WordNetWorker.getSense(senseKey));              
+            List<String> descriptionWords = new ArrayList<String>(WordNetWorker.getSense(senseKey));        
             return getSimilarityScore(word, descriptionWords);
         } catch (Exception e) {
             return 0.0;

@@ -297,8 +297,7 @@ public class WordNet_wordToWord implements WordNet_measurement{
         return sum / scoreMap.size();        
         */
         
-        // TODO: test code for issue #3:
-        //          Use top 40% of the similarity score for averaging the description to description approach.
+        // Use top 40% of the similarity score for averaging the description to description approach.
         double sum = 0;
         List<Double> scoreList = new ArrayList<Double>(scoreMap.values());
         // sort in acsending order.

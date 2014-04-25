@@ -5,14 +5,16 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.netlib.util.doubleW;
+import org.netlib.util.intW;
 
 import com.dichen.semanticSim.WordNetWorker;
 
 
 public class WordNet_phraseToWord extends WordNet_wordToWord implements WordNet_measurement{
-
-    public WordNet_phraseToWord(SimilarityAlgorithm algorithmType) {
+    private int approach;
+    public WordNet_phraseToWord(SimilarityAlgorithm algorithmType, int runApproach) {
         super(algorithmType);
+        this.approach = runApproach;
     }
     
     /**
@@ -31,7 +33,7 @@ public class WordNet_phraseToWord extends WordNet_wordToWord implements WordNet_
         
         // do alignment comparison on phrase to definition of the word.
         List<String> phraseList = new ArrayList<String>(Arrays.asList(phrase.split("\\W+")));
-        
+                
         return getSimilarityScoreByAlignment(phraseList, wordDescription);
     }
     
@@ -57,6 +59,7 @@ public class WordNet_phraseToWord extends WordNet_wordToWord implements WordNet_
         for (String tempWord : phraseList) {
             phraseDefinitionList.addAll(WordNetWorker.getSenses(tempWord));
         }
+        
 
         return getSimilarityScoreByAlignment(wordDescription, phraseDefinitionList);
     }
@@ -64,7 +67,11 @@ public class WordNet_phraseToWord extends WordNet_wordToWord implements WordNet_
     @Override
     public double getWordNetSimilarity(String larger, String smaller) {
         // Use phrase to definition alignment measure.
-        return getSimilarity_phraseToDefinition(larger, smaller);
-//        return getSimilarity_DefinitionToDefinition(larger, smaller);
+        if (approach == 1) {
+            return getSimilarity_phraseToDefinition(larger, smaller);
+        }
+        else {
+            return getSimilarity_DefinitionToDefinition(larger, smaller);
+        }
     }
 }

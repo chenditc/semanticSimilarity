@@ -7,6 +7,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
+import org.netlib.util.doubleW;
+import org.netlib.util.intW;
+
 
 
 import com.dichen.semanticSim.InputParser.TaskType;
@@ -17,9 +20,12 @@ import com.dichen.semanticSim.wordNet.WordNet_wordToWord.SimilarityAlgorithm;
 public class SemanticSim extends Thread{
 
     private SimilarityAlgorithm algorithm;
-    public SemanticSim(SimilarityAlgorithm runAlgorithm) {
-        // TODO Auto-generated constructor stub
+    private String fileName;
+    private int approach;
+    public SemanticSim(SimilarityAlgorithm runAlgorithm, String inputFileName, int runApproach) {
         algorithm = runAlgorithm;
+        fileName = inputFileName;
+        approach = runApproach;
     }
     
     /**
@@ -38,7 +44,7 @@ public class SemanticSim extends Thread{
         try {
             // Get data
             InputParser inputParser = new  InputParser();
-            inputParser.readFile(System.getenv("DKPRO_HOME") + "/SemEval-2014_Task-3-2/data/training/word2sense.train.input.tsv");
+            inputParser.readFile(System.getenv("DKPRO_HOME") + fileName);
             
             // word list 1 is the list of words
             List<String> wordList1 = inputParser.getWordList1();
@@ -53,50 +59,47 @@ public class SemanticSim extends Thread{
             for (int i = 0; i < wordList1.size(); i++) {
                 String word1 = wordList1.get(i);
                 String sense2 = wordList2.get(i);
-                SemanticSimRunner runner = new SemanticSimRunner(inputParser.getTaskType(), algorithm, word1, sense2);
-                resultDoubles.add(runner.call());
+                SemanticSimRunner runner = new SemanticSimRunner(approach,inputParser.getTaskType(), algorithm, word1, sense2);
+                double tempResult = 0;
+                tempResult = runner.call();
+                resultDoubles.add(tempResult);
             }
             
-            
-            // create thread pool and for each word pair, run the thread pool
-            /*
-            ExecutorService threadPoolService = Executors.newFixedThreadPool(16);
-            List<Future<Double>> futures = new ArrayList<Future<Double>>();
-            
-            for (int i = 0; i < wordList1.size(); i++) {
-                String word1 = wordList1.get(i);
-                String sense2 = wordList2.get(i);
-                
-                SemanticSimRunner runner = new SemanticSimRunner(new WordNet_wordToDescription(algorithm), word1, sense2);
-                futures.add(threadPoolService.submit(runner));
-            }
-            
-            threadPoolService.shutdown();
-            threadPoolService.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
-            
-            
-            // Add result into result list
-            for (Future<Double> result : futures) {
-                System.out.println("start add result");
-
-                resultDoubles.add(result.get());
-                System.out.println("add result");
-
-
-            }
-            */
 //                System.out.println("Similarity: " + String.format("%1$,.1f", score*4) + "\tbetween " + inputword1 + " " + inputWord2);
 //              System.out.println(String.format("%1$,.1f", 0));
 
-            OutputWriter.writeToFile("raw.training." + inputParser.getTaskType() + "." + "description_description" + "."+ algorithm, resultDoubles);
+            String outputFileName = "raw.";
+            outputFileName += inputParser.dataType;
+
+            if (approach == 1) {
+                OutputWriter.writeToFile("ls"+ algorithm + ".STS.output." + inputParser.getTaskType() + ".txt", resultDoubles);
+            }
+            else if (approach == 2) {
+                OutputWriter.writeToFile("ld"+ algorithm + ".STS.output." + inputParser.getTaskType() + ".txt", resultDoubles);
+            }
+            else {
+                OutputWriter.writeToFile("dd"+ algorithm + ".STS.output." + inputParser.getTaskType() + ".txt", resultDoubles);
+            }
+            
+            /*
+            if (approach == 1) {
+                OutputWriter.writeToFile(outputFileName + inputParser.getTaskType() + "." + "large_small" + "."+ algorithm, resultDoubles);
+            }
+            else if (approach == 2) {
+                OutputWriter.writeToFile(outputFileName + inputParser.getTaskType() + "." + "large_description" + "."+ algorithm, resultDoubles);
+            }
+            else {
+                OutputWriter.writeToFile(outputFileName + inputParser.getTaskType() + "." + "description_description" + "."+ algorithm, resultDoubles);
+            }
+            */
+            
+            System.out.println("Finish running " + algorithm);
 
         } catch (Exception e1) {
-            // TODO Auto-generated catch block
             e1.printStackTrace();
         } 
 
 
-        System.out.println("Finish running " + algorithm);
     }
 
    

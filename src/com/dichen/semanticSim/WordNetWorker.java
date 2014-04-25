@@ -44,7 +44,9 @@ public class WordNetWorker {
             
             if (temp == null) {
                 System.err.println("There is no sense key in wordnet: " + senseKey);
-                return null;
+                List<String> tempList = new ArrayList<String>();
+                tempList.add(senseKey.split("%")[0]);
+                return tempList;
             }
             
             String senseSyn = temp.substring(0, temp.length()-1);
@@ -61,6 +63,7 @@ public class WordNetWorker {
                     String[] tempArray = senseInventory.getSenseDescription(sense).split("\\W+");
                     List<String> tempList = new ArrayList<String>(Arrays.asList(tempArray));
                     return tempList;
+
                 }
             }
             
@@ -94,6 +97,7 @@ public class WordNetWorker {
                 for (String sense : senses) {
                     List<String> descriptionWordsList = Arrays.asList(senseInventory.getSenseDescription(sense).split("\\W+"));
                     result.addAll(descriptionWordsList);
+
                 }
             }
 

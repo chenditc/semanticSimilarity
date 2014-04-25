@@ -27,10 +27,9 @@ public class WordNet_DescriptionToDescription extends WordNet_wordToDescription 
             if (wordDescription.size() == 0){
                 wordDescription.add(word);
             }
-                    
+                                            
             return getSimilarityScoreByAlignment(wordDescription, senseDescription);
         } catch (Exception e) {
-            // TODO: handle exception
             return 0.0;
         }
         
